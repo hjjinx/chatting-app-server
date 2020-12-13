@@ -6,9 +6,9 @@ module.exports = (socket, io) => {
       return;
     }
     room.participants.push({ name: data.name, status: { socketState: 1 } });
-    socket.join(data.room.name);
-    io.to(data.room.name).emit("room/newMemberJoined", data.name);
     socket.emit("room/joined", { room });
+    io.to(data.room.name).emit("room/newMemberJoined", data.name);
+    socket.join(data.room.name);
   });
   socket.on("room/create", (data) => {
     const rooms = require("../rooms");
