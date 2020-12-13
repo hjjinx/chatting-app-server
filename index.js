@@ -4,7 +4,7 @@ var server = require("http").createServer(app);
 
 const io = require("socket.io")(server);
 // Register Socket Connection Listener:
-require("./socket")(io);
+require("./socket/index")(io);
 
 app.get("/", (req, res) => {
   res.send("<h1>Hello World!</h1>");
