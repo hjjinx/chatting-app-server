@@ -1,15 +1,18 @@
 module.exports = (socket, io) => {
   socket.on("room/join", (data) => {
-    const room = require("../rooms").find((x) => x.name == data.name);
+    const room = require("../rooms").find((x) => x.name == data.room.name);
     if (!room) {
-      socket.emit("error/roomDoesntExists");
+      socket.emit("error/roomDoesntExist");
       return;
     }
     room.participants.push({ name: data.name, status: { socketState: 1 } });
-    socket.emit("room/joined", room);
+    socket.join(data.room.name);
+    io.to(data.room.name).emit("room/newMemberJoined", data.name);
+    socket.emit("room/joined", { room });
   });
   socket.on("room/create", (data) => {
-    if (io.sockets.adapter.rooms.has(data.roomName)) {
+    const rooms = require("../rooms");
+    if (rooms.find((x) => x.name == data.roomName)) {
       socket.emit("error/roomAlreadyExists");
       return;
     }
@@ -18,7 +21,7 @@ module.exports = (socket, io) => {
       participants: [{ name: data.name, status: { socketState: 1 } }],
       messages: [],
     };
-    require("../rooms").push(room);
+    rooms.push(room);
     socket.join(data.roomName);
     socket.emit("room/joined", { room });
   });
