@@ -13,12 +13,14 @@ module.exports = (socket, io) => {
       socket.emit("error/roomAlreadyExists");
       return;
     }
-    require("../rooms").push({
+    const room = {
       name: data.roomName,
       participants: [{ name: data.name, status: { socketState: 1 } }],
       messages: [],
-    });
+    };
+    require("../rooms").push(room);
     socket.join(data.roomName);
+    socket.emit("room/joined", { room });
   });
   // emit the list of rooms every second to all the users currently connected
   socket.on("GET_room/list", () => {
