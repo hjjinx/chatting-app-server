@@ -49,6 +49,20 @@ module.exports = (socket, io) => {
     // });
     socket.emit("room/list", { rooms: require("../rooms") });
   });
+
+  socket.on("room/newMessage", (data) => {
+    const { text, id, timestamp } = data;
+    const room = require("../rooms").find((x) => x.name == id);
+    const newMessageObject = {
+      id: room.messages.length,
+      sender: socket.id,
+      text,
+      timestamp,
+    };
+    room.messages.push(newMessageObject);
+    io.to(id).emit("room/messagesUpdate", room.messages);
+  });
+
   socket.on("disconnecting", () => {
     const rooms = require("../rooms");
     for (let index in rooms) {
