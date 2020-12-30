@@ -1,3 +1,5 @@
+const { getPersonIconColor } = require("../commonMethods");
+
 module.exports = (socket, io) => {
   socket.on("room/join", (data) => {
     const room = require("../rooms").find((x) => x.name == data.room.name);
@@ -5,9 +7,14 @@ module.exports = (socket, io) => {
       socket.emit("error/roomDoesntExist");
       return;
     }
-    room.participants.push({ name: data.name, status: { socketState: 1 } });
+    room.participants.push({
+      id: socket.id,
+      name: data.name,
+      status: { socketState: 1 },
+      color: getPersonIconColor(data.name),
+    });
     socket.emit("room/joined", { room });
-    io.to(data.room.name).emit("room/newMemberJoined", data.name);
+    io.to(data.room.name).emit("room/participantsUpdate", room.participants);
     socket.join(data.room.name);
   });
   socket.on("room/create", (data) => {
@@ -18,7 +25,14 @@ module.exports = (socket, io) => {
     }
     const room = {
       name: data.roomName,
-      participants: [{ name: data.name, status: { socketState: 1 } }],
+      participants: [
+        {
+          id: socket.id,
+          name: data.name,
+          status: { socketState: 1 },
+          color: getPersonIconColor(data.name),
+        },
+      ],
       messages: [],
     };
     rooms.push(room);
@@ -34,5 +48,21 @@ module.exports = (socket, io) => {
     //   object[key] = Array.from(value);
     // });
     socket.emit("room/list", { rooms: require("../rooms") });
+  });
+  socket.on("disconnecting", () => {
+    const rooms = require("../rooms");
+    for (let index in rooms) {
+      const room = rooms[index];
+      const i = room.participants.findIndex((x) => x.id == socket.id);
+      if (i != -1) {
+        room.participants.splice(i, 1);
+        if (room.participants.length == 0) {
+          // when everyone left the room
+          rooms.splice(index, 1);
+          return;
+        }
+        io.to(room.name).emit("room/participantsUpdate", room.participants);
+      }
+    }
   });
 };
