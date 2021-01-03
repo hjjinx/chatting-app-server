@@ -11,7 +11,7 @@ module.exports = (socket, io) => {
       id: socket.id,
       name: data.name,
       status: { socketState: 1 },
-      color: getPersonIconColor(data.name),
+      color: getPersonIconColor(socket.id),
     });
     socket.emit("room/joined", { room });
     io.to(data.room.name).emit("room/participantsUpdate", room.participants);
