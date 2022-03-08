@@ -1,3 +1,4 @@
+const PORT = process.env.PORT || 3000;
 var server = require("http").createServer();
 
 const io = require("socket.io")(server, {
@@ -8,8 +9,8 @@ const io = require("socket.io")(server, {
   },
 });
 
-server.listen(8080, () => {
-  console.log("Listening on Port 8080");
+server.listen(PORT, () => {
+  console.log("Listening on Port " + PORT);
 });
 
 // Register Socket Connection Listener:
